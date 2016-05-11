@@ -17,14 +17,25 @@ var fs = require('fs')
 // to work correctly.
 //
 var git = path.resolve(root, '.git')
-  , hooks = path.resolve(git, 'hooks')
-  , precommit = path.resolve(hooks, 'pre-commit');
-
+  , tryParentsLevel = 2;
 //
 // Bail out if we don't have an `.git` directory as the hooks will not get
 // triggered. If we do have directory create a hooks folder if it doesn't exist.
 //
-if (!exists(git) || !fs.lstatSync(git).isDirectory()) return;
+while (!exists(git) || !fs.lstatSync(git).isDirectory()) {
+  if (tryParentsLevel === 0) {
+    return;
+  }
+  //
+  // Try to find git directory in parent directory
+  //
+  git = path.resolve(root, '..', '.git');
+  tryParentsLevel--;
+}
+
+
+var hooks = path.resolve(git, 'hooks')
+  , precommit = path.resolve(hooks, 'pre-commit');
 if (!exists(hooks)) fs.mkdirSync(hooks);
 
 //
